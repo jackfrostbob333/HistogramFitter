@@ -5,7 +5,6 @@ This single-page Streamlit app allows you to load numeric data (paste or upload 
 Run locally:
 
 ```powershell
-cd "c:\Users\souna\OneDrive - University of Waterloo\Desktop\NE111\Streamlit_Project\streamlit-website"
 python -m pip install -r requirements.txt
 streamlit run app.py
 ```
