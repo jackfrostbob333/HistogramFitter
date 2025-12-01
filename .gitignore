@@ -46,3 +46,9 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+
+# CSV Generator App (development/testing tool)
+csv_generator.py
+*.csv
+*.tsv
+
