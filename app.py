@@ -242,7 +242,7 @@ st.markdown("Enter data manually or upload a CSV. Fit multiple distributions and
 
 # Sidebar: data source selection and relevant inputs
 with st.sidebar:
-    st.header("📊 Data Input")
+    st.header("Data Input")
     
     # Data source selection
     data_source = st.radio(
@@ -266,7 +266,7 @@ with st.sidebar:
         data = parsed
         
     elif data_source == "Upload CSV/TSV":
-        st.subheader("📁 File Upload")
+        st.subheader("File Upload")
         uploaded_file = st.file_uploader("Choose a file", type=["csv", "tsv", "txt"])
         
         if uploaded_file is not None:
@@ -346,21 +346,21 @@ with st.sidebar:
                 
                 if csv_data is not None:
                     data = csv_data
-                    st.success(f"✅ Loaded {len(data)} values")
+                    st.success(f"Loaded {len(data)} values")
                 else:
-                    st.error(f"❌ {csv_error}")
+                    st.error(f"{csv_error}")
                     data = np.array([])
             except Exception as e:
                 csv_data = None
                 csv_error = str(e)
-                st.error(f"❌ {csv_error}")
+                st.error(f"{csv_error}")
                 data = np.array([])
         else:
             st.info("Upload a CSV or TSV file to begin")
             data = np.array([])
             
     else:  # Generate sample
-        st.subheader("🎲 Sample Generator")
+        st.subheader("Sample Generator")
         sample_choice = st.selectbox(
             "Distribution type", 
             ["Normal", "Exponential", "Gamma", "Weibull", "Beta", "Lognormal", 
@@ -438,7 +438,7 @@ with st.sidebar:
             # remember generated sample so we can mark it on the main plot
             st.session_state['generated'] = parsed
             st.session_state['generated_choice'] = sample_choice
-            st.success(f"✅ Generated {len(parsed)} values from {sample_choice} distribution")
+            st.success(f"Generated {len(parsed)} values from {sample_choice} distribution")
         
         if 'generated' in st.session_state:
             data = np.asarray(st.session_state['generated'])
@@ -446,7 +446,7 @@ with st.sidebar:
             data = np.array([])
     
     st.markdown("---")
-    st.subheader("📈 Histogram Settings")
+    st.subheader("Histogram Settings")
     bins = st.slider("Number of bins", min_value=5, max_value=200, value=40)
     density = st.checkbox("Show density (PDF) histogram", value=True)
 
@@ -622,7 +622,7 @@ with col2:
 
         # Show detailed fit results
         if fit_results:
-            st.subheader("📊 Fit Results & Quality Metrics")
+            st.subheader("Fit Results & Quality Metrics")
             
             # Prepare downloadable summary
             summary_rows = []
@@ -640,7 +640,7 @@ with col2:
                     metrics = compute_metrics(info["dist"], overridden, data, hist_bins=bins)
                 
                 # Use expander for cleaner layout
-                with st.expander(f"📈 **{name} Distribution**" + (" 🎛️ (Manual)" if name in manual_override else ""), expanded=True):
+                with st.expander(f"**{name} Distribution**" + (" (Manual)" if name in manual_override else ""), expanded=True):
                     # Parameters section
                     st.markdown("##### Distribution Parameters")
                     param_cols = st.columns(min(len(pdict), 4))
@@ -680,7 +680,7 @@ with col2:
                     
                     with metric_cols[3]:
                         ks_p = metrics.get("KS_p", 0.0)
-                        ks_quality = "✅ Good" if ks_p > 0.05 else "⚠️ Poor" if ks_p > 0.01 else "❌ Bad"
+                        ks_quality = "Good" if ks_p > 0.05 else "Poor" if ks_p > 0.01 else "Bad"
                         st.metric(
                             label="KS p-value",
                             value=f"{ks_p:.4f}",
@@ -690,11 +690,11 @@ with col2:
                     
                     # Overall fit quality indicator
                     if ks_p > 0.05:
-                        st.success("✅ **Strong fit** — Data is statistically consistent with this distribution")
+                        st.success("**Strong fit** — Data is statistically consistent with this distribution")
                     elif ks_p > 0.01:
-                        st.warning("⚠️ **Moderate fit** — Some deviation from ideal distribution")
+                        st.warning("**Moderate fit** — Some deviation from ideal distribution")
                     else:
-                        st.error("❌ **Poor fit** — Data does not match this distribution well")
+                        st.error("**Poor fit** — Data does not match this distribution well")
                 
                 # collect for CSV
                 try:
