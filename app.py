@@ -627,6 +627,94 @@ with col2:
             # Prepare downloadable summary
             summary_rows = []
             
+            # If multiple distributions, show best fit summary at the top
+            if len(fit_results) > 1:
+                # Find best fit based on KS p-value (higher is better)
+                best_name = None
+                best_ks_p = -1
+                best_info = None
+                
+                for name, info in fit_results.items():
+                    metrics = info["metrics"]
+                    # Apply manual override if exists
+                    if name in manual_override:
+                        overridden = manual_override[name]
+                        metrics = compute_metrics(info["dist"], overridden, data, hist_bins=bins)
+                    
+                    ks_p = metrics.get("KS_p", 0.0)
+                    if ks_p > best_ks_p:
+                        best_ks_p = ks_p
+                        best_name = name
+                        best_info = {
+                            "dist": info["dist"],
+                            "params": manual_override.get(name, info["params"]),
+                            "metrics": metrics
+                        }
+                
+                # Display best fit summary
+                if best_name and best_info:
+                    st.markdown("### Best Fit Summary")
+                    col_left, col_right = st.columns([1, 2])
+                    
+                    with col_left:
+                        st.markdown(f"#### {best_name} Distribution")
+                        st.markdown("**Selected as best fit based on highest KS p-value**")
+                        
+                        # Parameters
+                        pdict = params_dict_from_fit(best_info["dist"], best_info["params"])
+                        st.markdown("##### Parameters")
+                        for k, v in pdict.items():
+                            st.text(f"{k.capitalize()}: {v:.6f}")
+                        
+                        st.markdown("---")
+                        
+                        # Quality metrics
+                        st.markdown("##### Quality Metrics")
+                        metrics = best_info["metrics"]
+                        st.text(f"SSE: {metrics.get('SSE', np.inf):.6f}")
+                        st.text(f"MAE: {metrics.get('MAE', np.inf):.6f}")
+                        st.text(f"KS Stat: {metrics.get('KS', np.inf):.6f}")
+                        st.text(f"KS p-value: {metrics.get('KS_p', 0.0):.6f}")
+                        
+                        # Quality indicator
+                        if best_ks_p > 0.05:
+                            st.success("Strong fit")
+                        elif best_ks_p > 0.01:
+                            st.warning("Moderate fit")
+                        else:
+                            st.info("Acceptable fit")
+                    
+                    with col_right:
+                        # Create a focused comparison plot showing only the best fit
+                        fig_best, ax_best = plt.subplots(figsize=(8, 5))
+                        
+                        # Plot histogram
+                        ax_best.hist(data, bins=bins, density=density, alpha=0.7, color='steelblue', edgecolor='black', label='Data')
+                        
+                        # Overlay best fit
+                        x_vals = np.linspace(data.min(), data.max(), 500)
+                        params = best_info["params"]
+                        args = tuple(params[:-2]) if len(params) >= 2 else tuple(params[:-1])
+                        loc = params[-2] if len(params) >= 2 else 0.0
+                        scale = params[-1] if len(params) >= 2 else 1.0
+                        
+                        try:
+                            y_vals = best_info["dist"].pdf(x_vals, *args, loc=loc, scale=scale)
+                            ax_best.plot(x_vals, y_vals, linewidth=2.5, label=f'{best_name} fit', color='red')
+                        except Exception:
+                            pass
+                        
+                        ax_best.legend(loc='best')
+                        ax_best.set_title(f"Best Fit: {best_name} Distribution", fontsize=14, fontweight='bold')
+                        ax_best.set_xlabel("Value")
+                        ax_best.set_ylabel("Density" if density else "Count")
+                        ax_best.grid(True, alpha=0.3)
+                        
+                        st.pyplot(fig_best)
+                    
+                    st.markdown("---")
+                    st.markdown("### All Fitted Distributions")
+            
             # Create expandable sections for each distribution
             for name, info in fit_results.items():
                 params = info["params"]
